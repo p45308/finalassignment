@@ -5,17 +5,18 @@ import pandas as pd
 import joblib
 import numpy as np
 
-# Load the trained model and scaler
+# Load the trained model
 try:
     loaded_model = joblib.load('svc_model.pkl')
-    st.success("Model and scaler loaded successfully.")
+    st.success("Model loaded successfully.")
 except Exception as e:
-    st.error(f"Error loading model or scaler: {e}")
+    st.error(f"Error loading model: {e}")
     loaded_model = None
-    loaded_scaler = None
 
 # Define the features expected by the model after preprocessing
-# This order is crucial and must match the order of columns in X_train after encoding and scaling
+# This order is crucial and must match the order of columns in X_train after encoding
+# NOTE: This feature list does *not* account for scaling, which was applied during training.
+# Making predictions without scaling the input data will likely lead to incorrect results.
 feature_order = [
     'person_age', 'person_income', 'person_emp_length', 'loan_grade', 'loan_amnt', 'loan_int_rate',
     'loan_percent_income', 'cb_person_default_on_file', 'cb_person_cred_hist_length',
@@ -25,9 +26,10 @@ feature_order = [
 ]
 
 # Create the Streamlit app
-st.title("Credit Risk Prediction App")
+st.title("Credit Risk Prediction App (Without Scaling - May Give Incorrect Results!)")
 
 st.write("Enter the details below to predict credit risk.")
+st.warning("WARNING: This app does NOT scale the input data before prediction. The model was trained on scaled data, so predictions may be inaccurate.")
 
 # Get user input for each feature
 person_age = st.number_input("Person Age", min_value=0)
@@ -43,7 +45,7 @@ person_home_ownership = st.selectbox("Home Ownership", options=['RENT', 'OWN', '
 loan_intent = st.selectbox("Loan Intent", options=['EDUCATION', 'MEDICAL', 'VENTURE', 'PERSONAL', 'DEBTCONSOLIDATION', 'HOMEIMPROVEMENT'])
 
 
-# Function to preprocess input data
+# Function to preprocess input data (without scaling)
 def preprocess_input(data):
     # Create a DataFrame from input
     input_df = pd.DataFrame([data])
@@ -64,10 +66,9 @@ def preprocess_input(data):
 
     input_df = input_df[feature_order] # Reorder columns
 
-    # Scale the input data
-    scaled_input = loaded_scaler.transform(input_df)
+    # Return unscaled input
+    return input_df.values # Return as numpy array
 
-    return scaled_input
 
 # Make prediction when button is clicked
 if st.button("Predict Credit Risk"):
@@ -95,4 +96,4 @@ if st.button("Predict Credit Risk"):
         else:
             st.success("Prediction: Low Credit Risk")
     else:
-        st.warning("Model or scaler not loaded. Cannot make prediction.")
+        st.warning("Model not loaded. Cannot make prediction.")
