@@ -8,7 +8,6 @@ import numpy as np
 # Load the trained model and scaler
 try:
     loaded_model = joblib.load('svc_model.pkl')
-    loaded_scaler = joblib.load('scaler.pkl')
     st.success("Model and scaler loaded successfully.")
 except Exception as e:
     st.error(f"Error loading model or scaler: {e}")
